@@ -41,6 +41,7 @@
 
 ### Added
 
+- Edit gradients on the canvas, as in Figma: while a fill or stroke gradient's picker is open, the layer shows the gradient's line or ellipse with its end dots and stop squares. Dragging a dot moves it, <kbd>Shift</kbd> turns it in 15° steps, and dragging a square slides its stop; the stop selected on the canvas is the one selected in the picker.
 - Paste SVG markup copied as text, such as from a code editor or Figma's Copy as SVG, as layers.
 - Show the pixel grid when zoomed in, as in Figma: from 800% on a standard display and 400% on a Retina one, toggled with **View → Pixel Grid** or <kbd>⇧</kbd><kbd>'</kbd>. <kbd>⇧</kbd><kbd>⌘</kbd><kbd>'</kbd> toggles **Snap to Pixel Grid**. The zoom menu in the properties panel lists both, with Figma's shortcuts, and labels its shortcuts for zoom to fit (<kbd>⇧</kbd><kbd>1</kbd>) and 100% (<kbd>⌘</kbd><kbd>0</kbd>); <kbd>⇧</kbd><kbd>R</kbd> toggles rulers and <kbd>⌥</kbd><kbd>⌘</kbd><kbd>\\</kbd> multiplayer cursors.
 - Set a component's text, boolean, and swap properties on a design JSX `<Instance>` by name, as variants are set, such as `<Instance of="Card" Title="Hello" Badge={false} />`; `properties` accepts names too. An instance written this way still works after the document is saved to `.fig` and reopened, which gives each property a new ID ([#750](https://github.com/open-pencil/open-pencil/issues/750)).
@@ -143,6 +144,7 @@
 
 ### Fixed
 
+- Gradient stops in the fill picker show their full position and opacity, such as 100%, instead of cutting them off; each stop's colour, hex, and opacity share one field as in the properties panel.
 - Keep design variable bindings and honor `replace_id` and `insert_index` when `render` runs through the stdio MCP server (`openpencil-mcp`) against the desktop or web app, as it already did through the HTTP endpoint (#830).
 - Draw layers masked by a group, such as Figma's clip path groups, instead of hiding them; a group used as a mask masks with what its layers draw.
 - Import SVG files that start with an XML declaration or doctype, such as Illustrator and Inkscape exports, instead of reporting no supported elements.

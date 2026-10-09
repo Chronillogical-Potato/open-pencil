@@ -16,6 +16,7 @@ import type { BindableValueActions } from '@open-pencil/vue'
 
 import FillPicker from '@/components/fill-picker/FillPicker.vue'
 import NumberField from '@/components/inputs/NumberField.vue'
+import PaintField from '@/components/inputs/PaintField.vue'
 import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker.vue'
 import PropertyItemRow from '@/components/properties/item-list/PropertyItemRow.vue'
 import {
@@ -24,8 +25,8 @@ import {
   commitPaintMutation,
   paintBindingTargets
 } from '@/components/properties/paint/binding'
+import { useGradientEditing } from '@/components/properties/paint/gradient-edit'
 import { createStrokeOkhclAdapter } from '@/components/properties/paint/okhcl'
-import PaintField from '@/components/properties/paint/PaintField.vue'
 import PaintValue from '@/components/properties/paint/PaintValue.vue'
 import PropertyListRoot from '@/components/properties/PropertyListRoot.vue'
 import { useSharedStylePicker } from '@/components/properties/shared-style/useSharedStylePicker'
@@ -47,6 +48,18 @@ const strokeCtx = useStrokeControls()
 const { advancedActive } = strokeCtx
 const colorProvider = useColorBindingProvider()
 const okhcl = useOkHCL()
+const gradients = useGradientEditing()
+
+/** Opening a paint's picker shows its gradient handles on the canvas; closing commits the edit. */
+function onPickerOpenChange(
+  nodeIds: readonly string[],
+  index: number,
+  open: boolean,
+  binding: BindableValueActions<Color>
+) {
+  gradients.setOpen(gradients.target(nodeIds, 'strokes', index), open)
+  if (!open) commitPaintMutation(binding)
+}
 const { panels, common } = useI18n()
 const expandedSides = ref(false)
 
@@ -157,12 +170,17 @@ function onToggleSides(activeNode: SceneNode | null) {
                 :label="panels.stroke"
                 :fill="displayStroke(stroke, binding.resolvedValue)"
                 :okhcl="createStrokeOkhclAdapter(okhcl, activeNode, index)"
+                :keep-open="gradients.pressesHandle"
+                :active-stop="gradients.stop(gradients.target(selectedNodeIds, 'strokes', index))"
+                @update:active-stop="
+                  gradients.setStop(gradients.target(selectedNodeIds, 'strokes', index), $event)
+                "
                 @update="
                   updateStrokePaint(binding.actions, flush, stroke, $event, (next) =>
                     actions.update(index, next)
                   )
                 "
-                @open-change="!$event && commitPaintMutation(binding.actions)"
+                @open-change="onPickerOpenChange(selectedNodeIds, index, $event, binding.actions)"
                 @cancel="cancelPaintMutation(binding.actions)"
               />
             </template>
