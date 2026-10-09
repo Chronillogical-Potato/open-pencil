@@ -8,7 +8,14 @@ import {
   type Stroke
 } from '@open-pencil/scene-graph'
 import { TRANSPARENT } from '@open-pencil/scene-graph/constants'
-import { parseCSSNumber, parseCSSShadows } from '@open-pencil/scene-graph/css'
+import {
+  parseCSSAlignItems,
+  parseCSSAlignSelf,
+  parseCSSFlexDirection,
+  parseCSSJustifyContent,
+  parseCSSNumber,
+  parseCSSShadows
+} from '@open-pencil/scene-graph/css'
 import { computeImageHash } from '@open-pencil/scene-graph/images'
 
 import type { DesignDocument, DesignElement, DesignNode, DesignStyleDeclaration } from '../types'
@@ -163,30 +170,6 @@ function applyCornerRadii(node: SceneNode, style: DesignStyleDeclaration): void 
   ].some((radius) => radius !== fallback)
 }
 
-function primaryAxisAlignFromCSS(value: string | undefined): SceneNode['primaryAxisAlign'] {
-  if (value === 'center') return 'CENTER'
-  if (value === 'end' || value === 'flex-end') return 'MAX'
-  if (value === 'space-between') return 'SPACE_BETWEEN'
-  return 'MIN'
-}
-
-function counterAxisAlignFromCSS(value: string | undefined): SceneNode['counterAxisAlign'] {
-  if (value === 'center') return 'CENTER'
-  if (value === 'end' || value === 'flex-end') return 'MAX'
-  if (value === 'stretch') return 'STRETCH'
-  if (value === 'baseline') return 'BASELINE'
-  return 'MIN'
-}
-
-function layoutAlignSelfFromCSS(value: string | undefined): SceneNode['layoutAlignSelf'] {
-  if (value === 'center') return 'CENTER'
-  if (value === 'end' || value === 'flex-end') return 'MAX'
-  if (value === 'stretch') return 'STRETCH'
-  if (value === 'baseline') return 'BASELINE'
-  if (value === 'start' || value === 'flex-start') return 'MIN'
-  return 'AUTO'
-}
-
 function textCaseFromCSS(value: string | undefined): SceneNode['textCase'] {
   if (value === 'uppercase') return 'UPPER'
   if (value === 'lowercase') return 'LOWER'
@@ -312,14 +295,14 @@ function applyElementStyle(
   const overflow = pickStyle(style, 'overflow')
   if (overflow === 'hidden' || overflow === 'clip') node.clipsContent = true
 
-  const alignSelf = layoutAlignSelfFromCSS(pickStyle(style, 'align-self'))
+  const alignSelf = parseCSSAlignSelf(pickStyle(style, 'align-self')) ?? 'AUTO'
   if (alignSelf !== 'AUTO') node.layoutAlignSelf = alignSelf
 
   const display = pickStyle(style, 'display')
   if (display === 'flex' || display === 'inline-flex') {
-    node.layoutMode = pickStyle(style, 'flex-direction') === 'column' ? 'VERTICAL' : 'HORIZONTAL'
-    node.primaryAxisAlign = primaryAxisAlignFromCSS(pickStyle(style, 'justify-content'))
-    node.counterAxisAlign = counterAxisAlignFromCSS(pickStyle(style, 'align-items'))
+    node.layoutMode = parseCSSFlexDirection(pickStyle(style, 'flex-direction')) ?? 'HORIZONTAL'
+    node.primaryAxisAlign = parseCSSJustifyContent(pickStyle(style, 'justify-content')) ?? 'MIN'
+    node.counterAxisAlign = parseCSSAlignItems(pickStyle(style, 'align-items')) ?? 'MIN'
     node.layoutWrap = pickStyle(style, 'flex-wrap') === 'wrap' ? 'WRAP' : 'NO_WRAP'
     applyFlexGap(node, style)
   }
